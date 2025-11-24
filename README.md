@@ -12,9 +12,10 @@ application name : P6_PDS_to_OCI_ADW
 
 
 oci os object get \
-  -ns <REAL_NAMESPACE> \
+  -ns axjj8sdvrg1w \
   -bn bkt-neom-enowa-des-dev-data-landing \
   --name common/config/p6/env_variables.csv \
-  --query 'data."content"' \
-  --raw-output
+  --file env_variables.csv
+
+cat env_variables.csv
 
