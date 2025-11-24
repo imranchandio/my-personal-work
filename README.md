@@ -15,6 +15,6 @@ oci os object get \
   -ns <REAL_NAMESPACE> \
   -bn bkt-neom-enowa-des-dev-data-landing \
   --name common/config/p6/env_variables.csv \
-  --file env_variables.csv
+  --query 'data."content"' \
+  --raw-output
 
-cat env_variables.csv
