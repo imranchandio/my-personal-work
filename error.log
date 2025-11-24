@@ -1,0 +1,52 @@
+[CFG] Attempting primary env CSV: oci://bkt-neom-enowa-des-dev-data-landing@axjj8sdvrg1w/common/config/p6/env_variables.csv
+
+[DIAG][OCI] Requested URI: oci://bkt-neom-enowa-des-dev-data-landing@axjj8sdvrg1w/common/config/p6/env_variables.csv
+
+[DIAG][OCI] namespace=axjj8sdvrg1w bucket=bkt-neom-enowa-des-dev-data-landing object_name=common/config/p6/env_variables.csv
+
+[SIGNER] Using Instance Principals signer
+
+[DIAG][OCI][PRE-CHECK] Bucket access check failed for bucket 'bkt-neom-enowa-des-dev-data-landing' in namespace 'axjj8sdvrg1w'. Details: {"status": 404, "code": "BucketNotFound", "message": "The bucket 'bkt-neom-enowa-des-dev-data-landing' does not exist in namespace 'axjj8sdvrg1w'", "request_endpoint": "GET https://objectstorage.me-jeddah-1.oraclecloud.com/n/axjj8sdvrg1w/b/bkt-neom-enowa-des-dev-data-landing%22, "opc_request_id": null}. Ensure bucket exists, namespace is correct, and caller has OBJECT_READ permission.
+
+[CFG][FATAL] Failed to load CSV configs: Failed to download env CSV from primary URI: Bucket access check failed for bucket 'bkt-neom-enowa-des-dev-data-landing' in namespace 'axjj8sdvrg1w'. Details: {"status": 404, "code": "BucketNotFound", "message": "The bucket 'bkt-neom-enowa-des-dev-data-landing' does not exist in namespace 'axjj8sdvrg1w'", "request_endpoint": "GET https://objectstorage.me-jeddah-1.oraclecloud.com/n/axjj8sdvrg1w/b/bkt-neom-enowa-des-dev-data-landing%22, "opc_request_id": null}. Ensure bucket exists, namespace is correct, and caller has OBJECT_READ permission.
+
+Traceback (most recent call last):
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 330, in load_config_from_oci_csvs_with_fallback
+
+    local_env = try_download(primary_env_oci)
+
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 325, in try_download
+
+    return download_single_oci_file_diagnostic_or_local(uri, local_target_dir="/tmp", list_on_error=True)
+
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 210, in download_single_oci_file_diagnostic_or_local
+
+    raise RuntimeError(friendly)
+
+RuntimeError: Bucket access check failed for bucket 'bkt-neom-enowa-des-dev-data-landing' in namespace 'axjj8sdvrg1w'. Details: {"status": 404, "code": "BucketNotFound", "message": "The bucket 'bkt-neom-enowa-des-dev-data-landing' does not exist in namespace 'axjj8sdvrg1w'", "request_endpoint": "GET https://objectstorage.me-jeddah-1.oraclecloud.com/n/axjj8sdvrg1w/b/bkt-neom-enowa-des-dev-data-landing%22, "opc_request_id": null}. Ensure bucket exists, namespace is correct, and caller has OBJECT_READ permission.
+ 
+During handling of the above exception, another exception occurred:
+ 
+Traceback (most recent call last):
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 777, in <module>
+
+    main()
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 601, in main
+
+    env_whitelist, env_blacklist, global_since, per_table_since, env_config = load_config_from_oci_csvs_with_fallback(
+
+                                                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+  File "/tmp/spark-cf4cf4bc-9abc-4de0-a261-db1fc8493457/p6_pds_extract6.py", line 339, in load_config_from_oci_csvs_with_fallback
+
+    raise RuntimeError(f"Failed to download env CSV from primary URI: {e_primary_env}")
+
+RuntimeError: Failed to download env CSV from primary URI: Bucket access check failed for bucket 'bkt-neom-enowa-des-dev-data-landing' in namespace 'axjj8sdvrg1w'. Details: {"status": 404, "code": "BucketNotFound", "message": "The bucket 'bkt-neom-enowa-des-dev-data-landing' does not exist in namespace 'axjj8sdvrg1w'", "request_endpoint": "GET https://objectstorage.me-jeddah-1.oraclecloud.com/n/axjj8sdvrg1w/b/bkt-neom-enowa-des-dev-data-landing%22, "opc_request_id": null}. Ensure bucket exists, namespace is correct, and caller has OBJECT_READ permission.
+ 
