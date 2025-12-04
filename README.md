@@ -19,3 +19,6 @@ oci os object get \
 
 cat env_variables.csv
 
+
+
+oci os object bulk-download    --namespace-name axjj8sdvrg1w  --bucket-name bkt-neom-enowa-des-dev-data-landing  --download-dir 'fred' --prefix 'common/API/P6/data/20251124_184616/runquery/'
