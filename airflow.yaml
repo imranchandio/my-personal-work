@@ -1,21 +1,22 @@
-# p6_data_pipeline_details_config.yaml
+# simple_dataflow_config.yaml
 
-# ======================================
-# BASIC COMPARTMENT / ENV CONFIG
-# ======================================
-compartment_id: "ocid1.compartment.oc1..aaaaaaaagqvd5cybmsllqqkbligbbij6oueegrkrjyusjfikqnvdpovs0laq"
+# =========================
+# BASIC ENVIRONMENT CONFIG
+# =========================
+# Replace this with your real compartment OCID
+compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
 
 shared_dag_config:
   retries: 3
-  retry_delay: 300          # seconds
+  retry_delay: 300        # seconds
   max_active_runs: 1
   catchup: false
   start_date: "2024-11-20T00:00:00"   # ISO 8601
   run_poll_interval: 60               # seconds between status checks
 
-# ======================================
-# SHARED DATA FLOW SETTINGS (NO POOL)
-# ======================================
+# =========================
+# SHARED DATAFLOW SETTINGS
+# =========================
 shared_dataflow_config:
   driver_shape: "VM.Standard.E4.Flex"
   executor_shape: "VM.Standard.E4.Flex"
@@ -30,51 +31,54 @@ shared_dataflow_config:
 
   num_executors: 2
 
-  logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
+  # !!! IMPORTANT: replace with your Object Storage bucket + namespace
+  logs_bucket_uri: "oci://YOUR_LOG_BUCKET@YOUR_NAMESPACE/dataflow-logs/"
 
-# ======================================
-# DATA FLOW APPLICATION DEFINITION
-# ======================================
-applications:
-  details:
-    p6_simple_app:
-      display_name: "df_app_p6_simple_dataflow"
+  # Optional – if you don’t use a pool, leave as empty string
+  pool_id: ""
 
-      # >>> PUT YOUR REAL DATA FLOW APPLICATION OCID HERE <<<
-      # example prefix: ocid1.dataflowapplication.oc1.me-jeddah-1.anvgkljrs...
-      application_id: "ocid1.dataflowapplication.oc1.me-jeddah-1.YOUR_FULL_APP_OCID_HERE"
-
-      # Optional: arguments passed to the Spark job
-      arguments: []
-
-dataflow_app:
-  - application_key: "p6_simple_app"
-    logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
-
-# ======================================
-# DAG CONFIGS (NO SPACES / SPECIAL CHARS)
-# ======================================
+# =========================
+# DAG CONFIG
+# =========================
 dag_configs:
   aggregation:
-    dag_id: "airflow_dag_p6_pds_to_oci_adw"
-    description: "P6 PDS to OCI ADW DataFlow pipeline"
-    schedule_interval: "0 2 * * *"
+    dag_id: "airflow_dag_simple_dataflow"
+    description: "Simple DAG to trigger a single OCI Data Flow application"
+    schedule_interval: "0 2 * * *"   # Runs every day at 02:00
     retries: 3
     retry_delay: 300
     max_active_runs: 1
     catchup: false
     run_poll_interval: 60
+    # Task list – here we only have one Data Flow app: simple_app
     tasks:
-      - "p6_simple_app"
+      - simple_app
 
-  consumption:
-    dag_id: "airflow_dag_p6_data_consumption"
-    description: "P6 data consumption DataFlow pipeline"
-    schedule_interval: "0 3 * * *"
-    retries: 3
-    retry_delay: 300
-    max_active_runs: 1
-    catchup: false
-    run_poll_interval: 60
-    tasks:
-      - "p6_simple_app"
+# =========================
+# DATA FLOW APPLICATION
+# =========================
+Applications:
+  details:
+    simple_app:
+      # This is just a free-text label used for display and logging
+      display_name: "df-app-simple-dataflow"
+
+      # !!! IMPORTANT: put your real OCI Data Flow APPLICATION **OCID** here
+      application_id: "ocid1.dataflowapplication.oc1.region.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+      # Optional: any arguments to pass to the Data Flow job
+      arguments: []
+
+      # Optional: override compartment (otherwise top-level compartment_id is used)
+      # compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+
+# =========================
+# PER-APP DATAFLOW SETTINGS
+# (here we just reuse shared logs_bucket_uri/pool_id,
+# but this section is where you could override per-app)
+# =========================
+dataflow_app:
+  - application_id: simple_app
+    logs_bucket_uri: "oci://YOUR_LOG_BUCKET@YOUR_NAMESPACE/dataflow-logs/"
+    pool_id: ""
+    private_endpoint_id: ""
