@@ -14,8 +14,7 @@ shared_dag_config:
   run_poll_interval: 60               # seconds between status checks
 
 # ======================================
-# SHARED DATA FLOW SETTINGS
-# (NO POOL, NO PRIVATE ENDPOINT)
+# SHARED DATA FLOW SETTINGS (NO POOL)
 # ======================================
 shared_dataflow_config:
   driver_shape: "VM.Standard.E4.Flex"
@@ -34,39 +33,48 @@ shared_dataflow_config:
   logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
 
 # ======================================
-# DAG CONFIG (SIMPLE: SINGLE TASK)
+# DATA FLOW APPLICATION DEFINITION
+# ======================================
+applications:
+  details:
+    p6_simple_app:
+      display_name: "df_app_p6_simple_dataflow"
+
+      # >>> PUT YOUR REAL DATA FLOW APPLICATION OCID HERE <<<
+      # example prefix: ocid1.dataflowapplication.oc1.me-jeddah-1.anvgkljrs...
+      application_id: "ocid1.dataflowapplication.oc1.me-jeddah-1.YOUR_FULL_APP_OCID_HERE"
+
+      # Optional: arguments passed to the Spark job
+      arguments: []
+
+dataflow_app:
+  - application_key: "p6_simple_app"
+    logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
+
+# ======================================
+# DAG CONFIGS (NO SPACES / SPECIAL CHARS)
 # ======================================
 dag_configs:
-  simple:
-    dag_id: "airflow_dag_p6_simple_dataflow"
-    description: "Simple DAG to trigger a single OCI Data Flow application"
-    schedule_interval: "0 2 * * *"   # Runs every day at 02:00
+  aggregation:
+    dag_id: "airflow_dag_p6_pds_to_oci_adw"
+    description: "P6 PDS to OCI ADW DataFlow pipeline"
+    schedule_interval: "0 2 * * *"
     retries: 3
     retry_delay: 300
     max_active_runs: 1
     catchup: false
     run_poll_interval: 60
     tasks:
-      - p6_simple_app
+      - "p6_simple_app"
 
-# ======================================
-# DATA FLOW APPLICATION DEFINITION
-# ======================================
-Applications:
-  details:
-    p6_simple_app:
-      display_name: "df-app-p6-simple-dataflow"
-
-      # >>> PASTE YOUR FULL APP OCID FROM OCI HERE <<<
-      # e.g. ocid1.dataflowapplication.oc1.me-jeddah-1.anvgkljrsvw...
-      application_id: "ocid1.dataflowapplication.oc1.me-jeddah-1.YOUR_FULL_APP_OCID_HERE"
-
-      # Optional: arguments passed to the job
-      arguments: []
-
-# ======================================
-# PER-APP SETTINGS (NO POOL/ENDPOINT)
-# ======================================
-dataflow_app:
-  - application_key: p6_simple_app
-    logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
+  consumption:
+    dag_id: "airflow_dag_p6_data_consumption"
+    description: "P6 data consumption DataFlow pipeline"
+    schedule_interval: "0 3 * * *"
+    retries: 3
+    retry_delay: 300
+    max_active_runs: 1
+    catchup: false
+    run_poll_interval: 60
+    tasks:
+      - "p6_simple_app"
