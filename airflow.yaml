@@ -1,22 +1,15 @@
-# simple_dataflow_config.yaml
+# p6_simple_dataflow_config.yaml
 
-# =========================
-# BASIC ENVIRONMENT CONFIG
-# =========================
-# Replace this with your real compartment OCID
-compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+compartment_id: "ocid1.compartment.oc1..aaaaaaaagqvd5cybmsllqqkbligbbij6oueegrkrjyusjfikqnvdpovs0laq"
 
 shared_dag_config:
   retries: 3
-  retry_delay: 300        # seconds
+  retry_delay: 300          # seconds
   max_active_runs: 1
   catchup: false
-  start_date: "2024-11-20T00:00:00"   # ISO 8601
-  run_poll_interval: 60               # seconds between status checks
+  start_date: "2024-11-20T00:00:00"
+  run_poll_interval: 60     # seconds
 
-# =========================
-# SHARED DATAFLOW SETTINGS
-# =========================
 shared_dataflow_config:
   driver_shape: "VM.Standard.E4.Flex"
   executor_shape: "VM.Standard.E4.Flex"
@@ -31,54 +24,24 @@ shared_dataflow_config:
 
   num_executors: 2
 
-  # !!! IMPORTANT: replace with your Object Storage bucket + namespace
-  logs_bucket_uri: "oci://YOUR_LOG_BUCKET@YOUR_NAMESPACE/dataflow-logs/"
+  logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
 
-  # Optional – if you don’t use a pool, leave as empty string
-  pool_id: ""
+dataflow_application:
+  display_name: "df_app_p6_simple_dataflow"
 
-# =========================
-# DAG CONFIG
-# =========================
-dag_configs:
-  aggregation:
-    dag_id: "airflow_dag_simple_dataflow"
-    description: "Simple DAG to trigger a single OCI Data Flow application"
-    schedule_interval: "0 2 * * *"   # Runs every day at 02:00
-    retries: 3
-    retry_delay: 300
-    max_active_runs: 1
-    catchup: false
-    run_poll_interval: 60
-    # Task list – here we only have one Data Flow app: simple_app
-    tasks:
-      - simple_app
+  # >>> PASTE YOUR FULL DATA FLOW APP OCID HERE <<<
+  # example prefix: ocid1.dataflowapplication.oc1.me-jeddah-1....
+  application_id: "ocid1.dataflowapplication.oc1.me-jeddah-1.PASTE_YOUR_FULL_APP_OCID_HERE"
 
-# =========================
-# DATA FLOW APPLICATION
-# =========================
-Applications:
-  details:
-    simple_app:
-      # This is just a free-text label used for display and logging
-      display_name: "df-app-simple-dataflow"
+  arguments: []
 
-      # !!! IMPORTANT: put your real OCI Data Flow APPLICATION **OCID** here
-      application_id: "ocid1.dataflowapplication.oc1.region.xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-      # Optional: any arguments to pass to the Data Flow job
-      arguments: []
-
-      # Optional: override compartment (otherwise top-level compartment_id is used)
-      # compartment_id: "ocid1.compartment.oc1..xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
-
-# =========================
-# PER-APP DATAFLOW SETTINGS
-# (here we just reuse shared logs_bucket_uri/pool_id,
-# but this section is where you could override per-app)
-# =========================
-dataflow_app:
-  - application_id: simple_app
-    logs_bucket_uri: "oci://YOUR_LOG_BUCKET@YOUR_NAMESPACE/dataflow-logs/"
-    pool_id: ""
-    private_endpoint_id: ""
+dag:
+  dag_id: "airflow_dag_p6_simple_dataflow"
+  description: "simple p6 oci dataflow dag"
+  schedule_interval: "0 2 * * *"   # every day at 02:00
+  retries: 3
+  retry_delay: 300
+  max_active_runs: 1
+  catchup: false
+  run_poll_interval: 60
+  task_id: "run_p6_simple_dataflow"
