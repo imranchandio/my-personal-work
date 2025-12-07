@@ -1,0 +1,42 @@
+compartment_id: COMPARTMENT_ID
+
+shared_dag_config:
+  retries: 5
+  retry_delay: 300
+  max_active_runs: 1
+  catchup: false
+  start_date: "2024-11-20T00:00:00"
+  run_poll_interval: 60
+
+shared_dataflow_config:
+  driver_shape: VM.Standard.E4.Flex
+  executor_shape: VM.Standard.E4.Flex
+  driver_shape_config:
+    ocpus: 2
+    memory_in_gbs: 32
+  executor_shape_config:
+    ocpus: 2
+    memory_in_gbs: 32
+  num_executors: 2
+
+dag_configs:
+  ingestion:
+    dag_id: "airflow_dag_ingestion_p6_data"
+    description: "DAG for P6 ingestion Data Flow"
+    schedule_interval: "50 18 * * *"   # Runs once at 18:50
+    execution_mode: "sequential"
+    pipeline_apps:
+      - application_id_ingestion_p6_data
+
+Applications:
+  details:
+    ### Ingestion pipeline Configs
+    application_id_ingestion_p6_data: df-app-ingestion_p6_data_id
+    ingestion_p6_data_display_name: df-app-ingestion_p6_data
+
+dataflow_app:
+  ### Ingestion pipeline Config
+  - application_id: application_id_ingestion_p6_data
+    logs_bucket_uri: oci://OPERATIONS_BUCKET@NAMESPACE/dataflow-applications/logs/
+    pool_id: dfpool-synergyze-pool-dev-03
+    private_endpoint_id: PRIVATE_ENDPOINT_ID
