@@ -12,6 +12,7 @@ CONFIG_FILE_PATH = "/opt/airflow/dags/p6_pds_to_oci_config.yaml"
 OCI_CONFIG_PATH = "/opt/airflow/.oci/config"
 OCI_PROFILE = "DEFAULT"
 
+# Load config once at import
 with open(CONFIG_FILE_PATH, "r") as f:
     config = yaml.safe_load(f)
 
@@ -22,8 +23,10 @@ pipeline_config = config["dag_configs"]["aggregation"]
 app_details = config["Applications"]["details"]
 dataflow_app_conf = config["dataflow_app"][0]
 
+
 def load_oci():
     return from_file(OCI_CONFIG_PATH, OCI_PROFILE)
+
 
 def start_dataflow_run(application_id, cfg):
     df = DataFlowClient(load_oci())
@@ -52,30 +55,49 @@ def start_dataflow_run(application_id, cfg):
     if resp.status != 200:
         raise AirflowException(f"Failed to start DataFlow run: HTTP {resp.status}")
 
-    print(f"Started DataFlow run: {resp.data.id}")
-    return resp.data.id
+    run_id = resp.data.id
+    print(f"[P6_PDS_TO_OCI] Started DataFlow run: {run_id}")
+    return run_id
 
-def wait_for_run(run_id, **kwargs):
+
+def wait_for_run(dataflow_run_id):
+    """
+    Poll the OCI Data Flow run until it completes.
+    Note: parameter name is dataflow_run_id (not run_id) to avoid clashes with Airflow context.
+    """
     df = DataFlowClient(load_oci())
     poll_interval = shared_dag_config["run_poll_interval"]
 
     while True:
-        run = df.get_run(run_id).data
-        print(f"Run {run_id} state: {run.lifecycle_state}")
+        run = df.get_run(dataflow_run_id).data
+        state = run.lifecycle_state
+        print(f"[P6_PDS_TO_OCI] Run {dataflow_run_id} state: {state}")
 
-        if run.lifecycle_state == "SUCCEEDED":
-            print("Run completed successfully.")
+        if state == "SUCCEEDED":
+            print("[P6_PDS_TO_OCI] Run completed successfully.")
             return True
 
-        if run.lifecycle_state in ["FAILED", "CANCELED"]:
-            raise AirflowException(f"Run ended in {run.lifecycle_state}")
+        if state in ["FAILED", "CANCELED"]:
+            raise AirflowException(f"[P6_PDS_TO_OCI] Run ended in {state}")
 
         time.sleep(poll_interval)
 
+
 def run_p6_pipeline(**kwargs):
-    app_key = pipeline_config["pipeline_apps"][0]
+    """
+    Main task: start the DataFlow run and wait for completion.
+    kwargs contains Airflow context (including 'run_id'), which we do NOT pass into wait_for_run.
+    """
+    print("[P6_PDS_TO_OCI] Starting pipeline with context keys:", list(kwargs.keys()))
+
+    # First (and only) app in this pipeline
+    app_key = pipeline_config["pipeline_apps"][0]  # e.g. "application_id_p6_pds_to_oci"
     app_id = app_details[app_key]
-    display_name = app_details[app_key.replace("application_id_", "") + "_display_name"]
+
+    # e.g. app_key = "application_id_p6_pds_to_oci"
+    # display name key = "p6_pds_to_oci_display_name"
+    display_key = app_key.replace("application_id_", "") + "_display_name"
+    display_name = app_details[display_key]
 
     cfg = {
         "display_name": display_name,
@@ -90,8 +112,12 @@ def run_p6_pipeline(**kwargs):
         "configuration": dataflow_app_conf.get("configuration"),
     }
 
-    run_id = start_dataflow_run(app_id, cfg)
-    wait_for_run(run_id, **kwargs)
+    print(f"[P6_PDS_TO_OCI] Using application_id: {app_id}")
+    print(f"[P6_PDS_TO_OCI] Using logs_bucket_uri: {cfg['logs_bucket_uri']}")
+
+    dataflow_run_id = start_dataflow_run(app_id, cfg)
+    wait_for_run(dataflow_run_id)
+
 
 default_args = {
     "owner": "airflow",
