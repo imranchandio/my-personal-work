@@ -1,4 +1,4 @@
-compartment_id: "ocid1.compartment.oc1..aaaaaaaagqvd5cybmsllqqkbligbbij6oueegrkrjyujsfikqnvdpovsolaq"
+compartment_id: "ocid1.compartment.oc1..aaaaaaaagqvd5cybmsllqqkbligbbij6oueegrkrjyusjfikqnvdpovs0laq"
 
 shared_dag_config:
   retries: 3
@@ -9,33 +9,35 @@ shared_dag_config:
   run_poll_interval: 60
 
 shared_dataflow_config:
-  driver_shape: "VM.Standard.E5.Flex"
-  executor_shape: "VM.Standard.E5.Flex"
+  driver_shape: "VM.Standard.E4.Flex"
+  executor_shape: "VM.Standard.E4.Flex"
+
   driver_shape_config:
     ocpus: 2
-    memory_in_gbs: 32
+    memory_in_gbs: 16
+
   executor_shape_config:
     ocpus: 2
-    memory_in_gbs: 32
+    memory_in_gbs: 16
+
   num_executors: 2
 
 dag_configs:
   aggregation:
     dag_id: "airflow_dag_p6_pds_to_oci"
-    description: "P6 PDS → OCI Object Storage"
+    description: "P6 PDS to OCI ADW via DataFlow"
     schedule_interval: "0 1 * * *"
-    retries: 3
-    execution_mode: "sequential"
     pipeline_apps:
-      - application_id_p6_adw_ops
+      - "application_id_p6_pds_to_oci"
 
 Applications:
   details:
-    application_id_p6_adw_ops: "ocid1.dataflowapplication.oc1.me-jeddah-1.anvgkljrsvwgetya7c7w77f6b2ht3kaf4n7l5j5py7thqldudwh7nbhzobaq"
-    p6_adw_ops_display_name: "P6_PDS_to_OCI"
+    # DataFlow application OCID
+    application_id_p6_pds_to_oci: "ocid1.dataflowapplication.oc1.me-jeddah-1.YOUR_FULL_APP_OCID_HERE"
+
+    # Display name for the run
+    p6_pds_to_oci_display_name: "p6_pds_to_oci_run"
 
 dataflow_app:
-  - application_id: "application_id_p6_ops"
-    logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
-    configuration:
-      WRITE_MODE: "overwrite"
+  - logs_bucket_uri: "oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/logs/"
+    configuration: {}
