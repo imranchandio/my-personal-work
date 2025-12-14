@@ -1,0 +1,9 @@
+spark-submit \
+--deploy-mode cluster \
+--master yarn \
+--conf spark.sql.sources.partitionOverwriteMode=dynamic \
+--conf spark.sql.shuffle.partitions=200 \
+--conf spark.hadoop.fs.oci.client.hostnameSuffix=oraclecloud.com \
+--py-files oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/p6/staging_to_landing/transformations.py,oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/p6/staging_to_landing/config.yaml \
+oci://bkt-neom-enowa-synergyze-dev-data-operations@axjj8sdvrg1w/dataflow-applications/p6/staging_to_landing/p6_pds_runner.py \
+--env dev
